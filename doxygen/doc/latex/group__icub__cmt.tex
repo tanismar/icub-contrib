@@ -1,0 +1,50 @@
+\section{C\+M\+T Tracker}
+\label{group__icub__cmt}\index{C\+M\+T Tracker@{C\+M\+T Tracker}}
+
+
+A tracker based on the \href{http://www.gnebehay.com/cmt}{\tt C\+M\+T} algorithm.  
+
+
+A tracker based on the \href{http://www.gnebehay.com/cmt}{\tt C\+M\+T} algorithm. 
+
+\hypertarget{group__icub__tld_intro_sec}{}\subsection{Description}\label{group__icub__tld_intro_sec}
+This is a yarp wrapper of the C\+M\+T algorithm (a.\+k.\+a. {\bfseries Consensus-\/based Matching and Tracking}) for tracking objects. ~\newline
+ The C++ version of the method is taken from the \href{https://github.com/delmottea/libCMT}{\tt lib\+C\+M\+T} library.
+
+Available R\+P\+C services are\+:
+
+(notation\+: \mbox{[}.\mbox{]} identifies a vocab, $<$.$>$ specifies a double, \char`\"{}.\char`\"{} specifies a string)
+
+{\bfseries I\+N\+I\+T} ~\newline
+action\+: init C\+M\+T with the template given by the bounding box. ~\newline
+format\+: \mbox{[}init\mbox{]} $<$top-\/left.\+x$>$ $<$top-\/left.\+y$>$ $<$bottom-\/right.\+x$>$ $<$bottom-\/right.\+y$>$ ~\newline
+
+
+{\bfseries S\+T\+A\+R\+T} ~\newline
+format\+: \mbox{[}start\mbox{]} ~\newline
+ action\+: start tracking.
+
+{\bfseries S\+T\+O\+P} ~\newline
+format\+: \mbox{[}stop\mbox{]} ~\newline
+ action\+: stop tracking.\hypertarget{group__icub__tld_lib_sec}{}\subsection{Libraries}\label{group__icub__tld_lib_sec}
+
+\begin{DoxyItemize}
+\item Y\+A\+R\+P libraries.
+\item Open\+C\+V (with C++ layer).
+\end{DoxyItemize}\hypertarget{group__icub__tld_portsc_sec}{}\subsection{Ports Created}\label{group__icub__tld_portsc_sec}
+
+\begin{DoxyItemize}
+\item {\itshape /} $<$mod\+Name$>$/img\+:i receives the image acquired from the camera.
+\item {\itshape /} $<$mod\+Name$>$/img\+:o streams out the image containing tracked object.
+\item {\itshape /} $<$mod\+Name$>$/data\+:o streams out information about the tracked object in the following format\+: {\itshape $<$top-\/left.\+x$>$ $<$top-\/left.\+y$>$ $<$top-\/right.\+x$>$ $<$top-\/right.\+y$>$ $<$bottom-\/right.\+x$>$ $<$bottom-\/right.\+y$>$ $<$bottom-\/left.\+x$>$ $<$bottom-\/left.\+y$>$}.
+\item {\itshape /} $<$mod\+Name$>$/rpc processes rpc requests.
+\end{DoxyItemize}\hypertarget{group__icub__tld_parameters_sec}{}\subsection{Parameters}\label{group__icub__tld_parameters_sec}
+--name {\itshape name} 
+\begin{DoxyItemize}
+\item specify the module stem-\/name, which is {\itshape cmt} by default. The stem-\/name is used as prefix for all open ports.
+\end{DoxyItemize}\hypertarget{group__icub__tld_tested_os_sec}{}\subsection{Tested O\+S}\label{group__icub__tld_tested_os_sec}
+Linux, Windows
+
+\begin{DoxyAuthor}{Author}
+Ugo Pattacini 
+\end{DoxyAuthor}

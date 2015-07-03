@@ -1,0 +1,2 @@
+\form#0:\[ gain\cdot\sin\left(2\pi\left(f_{min}+\frac{f_{max}-f_{min}}{T}t\right)t\right), \]
+\form#1:\[ P\left(s\right)=\frac{K_p}{s}\cdot\frac{1+T_zs}{1+2\zeta T_ws+\left(T_ws\right)^2}, \]

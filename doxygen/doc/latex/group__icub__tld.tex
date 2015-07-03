@@ -1,0 +1,94 @@
+\section{T\+L\+D Tracker}
+\label{group__icub__tld}\index{T\+L\+D Tracker@{T\+L\+D Tracker}}
+
+
+A tracker based on the \href{http://gnebehay.github.io/OpenTLD/}{\tt Open\+T\+L\+D} library.  
+
+
+A tracker based on the \href{http://gnebehay.github.io/OpenTLD/}{\tt Open\+T\+L\+D} library. 
+
+\hypertarget{group__icub__tld_intro_sec}{}\subsection{Description}\label{group__icub__tld_intro_sec}
+This is a yarp wrapper of the T\+L\+D algorithm (a.\+k.\+a. {\bfseries Predator}) performing Tracking, Learning and Detection.
+
+Available R\+P\+C services are\+:
+
+(notation\+: \mbox{[}.\mbox{]} identifies a vocab, $<$.$>$ specifies a double, \char`\"{}.\char`\"{} specifies a string)
+
+{\bfseries L\+O\+A\+D} ~\newline
+format \#1\+: \mbox{[}load\mbox{]} \char`\"{}model.\+md\char`\"{} ~\newline
+ reply\+: \mbox{[}nack\mbox{]}$\vert$\mbox{[}ack\mbox{]} \char`\"{}path\+\_\+to\+\_\+model.\+md\char`\"{} ~\newline
+action\+: load the model from the specified file. ~\newline
+format \#2\+: \mbox{[}load\mbox{]} $<$top-\/left.\+x$>$ $<$top-\/left.\+y$>$ $<$bottom-\/right.\+x$>$ $<$bottom-\/right.\+y$>$ ~\newline
+ action\+: init T\+L\+D with the template given by the bounding box.
+
+{\bfseries S\+A\+V\+E} ~\newline
+format\+: \mbox{[}save\mbox{]} \char`\"{}model.\+md\char`\"{} ~\newline
+reply\+: \mbox{[}nack\mbox{]}$\vert$\mbox{[}ack\mbox{]} \char`\"{}path\+\_\+to\+\_\+model.\+md\char`\"{} ~\newline
+ action\+: store the model in the specified file.
+
+{\bfseries S\+T\+A\+R\+T} ~\newline
+format\+: \mbox{[}start\mbox{]} ~\newline
+ action\+: start tracking/learning/detecting.
+
+{\bfseries S\+T\+O\+P} ~\newline
+format\+: \mbox{[}stop\mbox{]} ~\newline
+ action\+: stop tracking/learning/detecting.
+
+{\bfseries C\+L\+E\+A\+R} ~\newline
+format\+: \mbox{[}clear\mbox{]} ~\newline
+ action\+: clear the content of T\+L\+D.
+
+{\bfseries S\+E\+T} ~\newline
+format\+: \mbox{[}set\mbox{]} \mbox{[}learn\mbox{]}$\vert$\mbox{[}alternating\mbox{]} \mbox{[}on\mbox{]}$\vert$\mbox{[}off\mbox{]} ~\newline
+ action\+: enable/disable learning $\vert$ alternating mode. ~\newline
+ In alternating mode, the detection is off while tracking.
+
+{\bfseries G\+E\+T} ~\newline
+format\+: \mbox{[}get\mbox{]} \mbox{[}learn\mbox{]}$\vert$\mbox{[}alternating\mbox{]} ~\newline
+ reply\+: \mbox{[}nack\mbox{]}$\vert$\mbox{[}ack\mbox{]} \mbox{[}on\mbox{]}$\vert$\mbox{[}off\mbox{]} ~\newline
+ action\+: retrieve learning $\vert$ alternating current status.\hypertarget{group__icub__tld_lib_sec}{}\subsection{Libraries}\label{group__icub__tld_lib_sec}
+
+\begin{DoxyItemize}
+\item Y\+A\+R\+P libraries.
+\item Open\+C\+V (with C++ layer).
+\item Open\+T\+L\+D.
+\end{DoxyItemize}\hypertarget{group__icub__tld_openTLD_sec}{}\subsection{Installing Open\+T\+L\+D}\label{group__icub__tld_openTLD_sec}
+The steps are\+: ~\newline
+
+\begin{DoxyEnumerate}
+\item git clone \href{https://github.com/gnebehay/OpenTLD.git}{\tt https\+://github.\+com/gnebehay/\+Open\+T\+L\+D.\+git} .~\newline
+
+\item compile the library with default values of cmake variables. ~\newline
+
+\item set up the environment variable {\bfseries Open\+T\+L\+D\+\_\+\+R\+O\+O\+T} pointing to the root directory. ~\newline
+
+\item set up the environment variable {\bfseries Open\+T\+L\+D\+\_\+\+D\+I\+R} pointing to the build directory. ~\newline
+
+\item For Windows systems only, when cmaking T\+L\+D project, select which sub path to the Open\+T\+L\+D libraries is to be used, if Release (default) or Debug, by filling the {\bfseries Open\+T\+L\+D\+\_\+\+W\+I\+N\+\_\+\+L\+I\+B\+\_\+\+S\+U\+B\+P\+A\+T\+H} variable.
+\end{DoxyEnumerate}\hypertarget{group__icub__tld_portsc_sec}{}\subsection{Ports Created}\label{group__icub__tld_portsc_sec}
+
+\begin{DoxyItemize}
+\item {\itshape /} $<$mod\+Name$>$/img\+:i receives the image acquired from the camera.
+\item {\itshape /} $<$mod\+Name$>$/img\+:o streams out the image containing tracked object.
+\item {\itshape /} $<$mod\+Name$>$/data\+:o streams out information about the tracked object in the following format\+: {\itshape $<$top-\/left.\+x$>$ $<$top-\/left.\+y$>$ $<$bottom-\/right.\+x$>$ $<$bottom-\/right.\+y$>$ $<$confidence$>$}.
+\item {\itshape /} $<$mod\+Name$>$/rpc processes rpc requests.
+\end{DoxyItemize}\hypertarget{group__icub__tld_parameters_sec}{}\subsection{Parameters}\label{group__icub__tld_parameters_sec}
+--name {\itshape name} 
+\begin{DoxyItemize}
+\item specify the module stem-\/name, which is {\itshape tld} by default. The stem-\/name is used as prefix for all open ports.
+\end{DoxyItemize}
+
+--context {\itshape path} 
+\begin{DoxyItemize}
+\item specify the path to the model files to be loaded/written.
+\end{DoxyItemize}
+
+--model {\itshape file} 
+\begin{DoxyItemize}
+\item specify the model file to load the T\+L\+D with at start-\/up.
+\end{DoxyItemize}\hypertarget{group__icub__tld_tested_os_sec}{}\subsection{Tested O\+S}\label{group__icub__tld_tested_os_sec}
+Linux, Windows
+
+\begin{DoxyAuthor}{Author}
+Ugo Pattacini 
+\end{DoxyAuthor}
