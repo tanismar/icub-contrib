@@ -238,7 +238,7 @@ public:
                     cv::floodFill(imgDispInMat,seed,cv::Scalar(255),NULL,delta,delta,4|cv::FLOODFILL_FIXED_RANGE);
                     cv::cvtColor(imgDispInMat,imgDispOutMat,CV_GRAY2RGB);
 
-                    cout << "Retrieved " << points.size() << "3D points"  <<endl;
+                    cout << "Retrieved " << points.size() << " 3D points"  <<endl;
 
                 }else if (seg)
                 {
