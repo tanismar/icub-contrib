@@ -44,13 +44,14 @@ protected:
     double spatial_distance;
     int color_distance;
     Mutex mutex;    
-    bool go,flood3d,flood;
+    bool go,flood3d,flood,seg;
 
     BufferedPort<ImageOf<PixelMono> > portDispIn;
     BufferedPort<ImageOf<PixelRgb> > portDispOut;
     BufferedPort<ImageOf<PixelRgb> > portImgIn;
     Port portContour;
     RpcClient portSFM;
+    RpcClient portSeg;
     RpcServer portRpc;
 
     /*******************************************************************************/
@@ -76,16 +77,19 @@ public:
         portImgIn.open("/test-3d-points/img:i");
         portContour.open("/test-3d-points/contour:i");
         portSFM.open("/test-3d-points/SFM:rpc");
+        portSeg.open("/test-3d-points/seg:rpc");
         portRpc.open("/test-3d-points/rpc");
 
         portContour.setReader(*this);
         attach(portRpc);
 
         homeContextPath=rf.getHomeContextPath().c_str();
+        cout << "Files will be saved to "<< homeContextPath << endl;
+
         downsampling=std::max(1,rf.check("downsampling",Value(1)).asInt());
         spatial_distance=rf.check("spatial_distance",Value(0.004)).asDouble();
         color_distance=rf.check("color_distance",Value(6)).asInt();
-        go=flood3d=flood=false;
+        go=flood3d=flood=seg=false;
 
         return true;
     }
@@ -153,13 +157,14 @@ public:
             cv::Rect rect=cv::boundingRect(contour);
             cv::rectangle(imgDispOutMat,rect,cv::Scalar(255,50,0));
 
-            if (go||flood3d||flood)
+            if (go||flood3d||flood||seg)
             {
                 vector<Vector> points;
                 Bottle cmd,reply;
 
                 if (go)
-                {                    
+                {
+                    cout << "3D points from selected contour "<<endl;
                     cmd.addString("Rect");
                     cmd.addInt(rect.x);     cmd.addInt(rect.y);
                     cmd.addInt(rect.width); cmd.addInt(rect.height);
@@ -192,9 +197,11 @@ public:
                             }
                         }
                     }
+                    cout << "Retrieved " << points.size() << " 3D points"  <<endl;
                 }
                 else if (flood3d)
                 {
+                    cout << "3D points flood3D "<<endl;
                     cmd.addString("Flood3D");
                     cmd.addInt(contour.back().x);
                     cmd.addInt(contour.back().y);
@@ -219,15 +226,87 @@ public:
                             floodPoints.push_back(cv::Point(x,y));
                         }
                     }
+
+                    cout << "Retrieved " << points.size() << " 3D points"  <<endl;
                 }
                 else if (flood)
                 {
+                    cout << "3D points from 2D flood "<<endl;
                     cv::Point seed(contour.back().x,contour.back().y);
                     PixelMono c=imgDispIn->pixel(seed.x,seed.y);
                     cv::Scalar delta(color_distance);
                     cv::floodFill(imgDispInMat,seed,cv::Scalar(255),NULL,delta,delta,4|cv::FLOODFILL_FIXED_RANGE);
                     cv::cvtColor(imgDispInMat,imgDispOutMat,CV_GRAY2RGB);
+
+                    cout << "Retrieved " << points.size() << "3D points"  <<endl;
+
+                }else if (seg)
+                {
+                    cout << "3D points from segmentation "<<endl;
+                    Bottle cmdSeg, replySeg;
+                    cmdSeg.addString("get_component_around");
+                    cmdSeg.addInt(contour.back().x);
+                    cmdSeg.addInt(contour.back().x);
+
+                    if (portSeg.write(cmdSeg,replySeg))
+                    {
+
+                        Bottle* pixelList=replySeg.get(0).asList();
+                        cout << "Read " << pixelList->size() << "points from segmentation algorithm" <<endl;
+                        cv::Mat binImg = cv::Mat(imgDispInMat.rows, imgDispInMat.cols, CV_8U, 0.0);
+                        for (int i=0; i<pixelList->size(); i++)
+                        {
+                            cv::Point2f point2D;
+                            Bottle* point=pixelList->get(i).asList();
+                            point2D.x=point->get(0).asDouble();
+                            point2D.y=point->get(1).asDouble();
+                            binImg.at<uchar>(point2D.y,point2D.x) = 255;
+                        }
+                        vector<vector<cv::Point> > contoursSeg;
+                        vector<cv::Vec4i> hierarchy;
+                        cv::findContours(binImg, contoursSeg, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+                        vector<cv::Point> contourSeg = contoursSeg[0];
+                        cv::Rect rectSeg=cv::boundingRect(contourSeg);
+                        cv::rectangle(imgDispOutMat,rectSeg,cv::Scalar(50,255,0));
+
+                        cout << "Contours extracted."  <<endl;
+
+                        cmd.addString("Rect");
+                        cmd.addInt(rectSeg.x);     cmd.addInt(rectSeg.y);
+                        cmd.addInt(rectSeg.width); cmd.addInt(rectSeg.height);
+                        cmd.addInt(downsampling);
+                        if (portSFM.write(cmd,reply))
+                        {
+                            int idx=0;
+                            for (int x=rectSeg.x; x<rectSeg.x+rectSeg.width; x+=downsampling)
+                            {
+                                for (int y=rectSeg.y; y<rectSeg.y+rectSeg.height; y+=downsampling)
+                                {
+                                    if (cv::pointPolygonTest(contourSeg,cv::Point2f((float)x,(float)y),false)>0.0)
+                                    {
+                                        Vector point(6,0.0);
+                                        point[0]=reply.get(idx+0).asDouble();
+                                        point[1]=reply.get(idx+1).asDouble();
+                                        point[2]=reply.get(idx+2).asDouble();
+                                        if (norm(point)>0.0)
+                                        {
+                                            PixelRgb px=imgIn->pixel(x,y);
+                                            point[3]=px.r;
+                                            point[4]=px.g;
+                                            point[5]=px.b;
+
+                                            points.push_back(point);
+                                        }
+                                    }
+
+                                    idx+=3;
+                                }
+                            }
+                        }
+                        cout << "Retrieved " << points.size() << " 3D points"  <<endl;
+                    }
                 }
+
 
                 if (points.size()>0)
                 {
@@ -248,7 +327,7 @@ public:
                     fout.close();
                 }
 
-                go=flood3d=false;
+                go=flood3d=seg=false;
             }
         }
 
@@ -268,7 +347,7 @@ public:
             LockGuard lg(mutex);
             contour.clear();
             floodPoints.clear();
-            go=flood3d=flood=false;
+            go=flood3d=flood=seg=false;
             reply.addVocab(ack);
         }
         else if ((cmd=="go") || (cmd=="flood3d"))
@@ -310,6 +389,12 @@ public:
             contour.clear();
             floodPoints.clear();
             flood=true;
+            reply.addVocab(ack);
+        }
+        else if (cmd=="seg")
+        {
+            contour.clear();
+            seg=true;
             reply.addVocab(ack);
         }
         else 

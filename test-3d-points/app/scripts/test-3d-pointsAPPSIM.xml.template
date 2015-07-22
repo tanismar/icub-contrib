@@ -1,0 +1,101 @@
+<application>
+<name>Test-3D-Points_APPSIM</name>
+        <dependencies>
+            <port>/icub/camcalib/left/out</port>
+            <port>/icub/camcalib/right/out</port>
+            <port>/iKinGazeCtrl/rpc</port>
+        </dependencies>
+      
+        <module>
+           <name>SFM</name>
+           <node>console</node>
+           <parameters>--robot icubSim</parameters>
+        </module>
+
+        <module>
+           <name>test-3d-points</name>
+           <parameters>--downsampling 1 --spatial_distance 0.004 --color_distance 6 --robot icubSim</parameters>
+           <node>console</node>
+        </module>
+        
+        <module>
+            <name>graphBasedSegmentation</name>
+            <parameters></parameters>
+            <node>console</node>
+        </module>
+
+        <module>
+           <name>yarpview</name>
+           <parameters>--name /disp --out /disp/out --p 33</parameters>
+           <node>console</node>
+        </module>
+
+        <module>
+           <name>yarpview</name>
+           <parameters>--name /segView --p 33</parameters>
+           <node>console</node>
+        </module>
+
+        <connection>
+            <from>/icubSim/cam/left</from>
+            <to>/SFM/left:i</to>
+            <protocol>tcp</protocol>
+        </connection>
+        <connection>
+            <from>/icubSim/cam/right</from>
+            <to>/SFM/right:i</to>
+            <protocol>tcp</protocol>
+        </connection>        
+                      
+        <connection>
+            <from>/icubSim/cam/left</from>
+            <to>/GBSeg/rawImg:i</to>
+            <protocol>tcp</protocol>
+        </connection>
+
+        <connection>
+            <from>/SFM/disp:o</from>
+            <to>/test-3d-points/disp:i</to>
+            <protocol>tcp</protocol>
+        </connection>
+
+        <connection>
+            <from>/test-3d-points/SFM:rpc</from>
+            <to>/SFM/rpc</to>
+            <protocol>tcp</protocol>
+        </connection>
+        
+        <connection>
+            <from>/test-3d-points/seg:rpc</from>
+            <to>/GBSeg/conf</to>
+            <protocol>tcp</protocol>
+            <geometry>(Pos ((x 549.5) (y 189)) ((x 552) (y 226)) ((x 568) (y 152))  )</geometry>
+        </connection>
+
+        <connection>
+            <from>/icubSim/cam/left</from>
+            <to>/test-3d-points/img:i</to>
+            <protocol>tcp</protocol>
+        </connection>
+
+        <connection>
+            <from>/test-3d-points/disp:o</from>
+            <to>/disp</to>
+            <protocol>tcp</protocol>
+        </connection>
+
+        <connection>
+            <from>/disp/out</from>
+            <to>/test-3d-points/contour:i</to>
+            <protocol>tcp</protocol>
+        </connection>
+        
+        <connection>
+            <from>/GBSeg/viewImg:o</from>
+            <to>/segView/yarpview/img:i</to>
+            <protocol>udp</protocol>
+            <geometry>(Pos ((x 822.5) (y 173.5)) ((x 833) (y 139)) ((x 833) (y 208))  )</geometry>
+        </connection>
+        
+</application>
+
