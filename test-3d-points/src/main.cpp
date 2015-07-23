@@ -323,6 +323,7 @@ public:
                                   points[i].subVector(3,5).toString(0,3).c_str()<<endl;
                         }
                         fout<<endl;
+                        cout << "Points saved as " << homeContextPath << "/test-3d-points.off"  << endl;
                     }
                     fout.close();
                 }
