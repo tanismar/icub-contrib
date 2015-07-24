@@ -103,7 +103,7 @@ public:
         ret = ret && portImgIn.open("/"+name+"/img:i");
         ret = ret && portContour.open("/"+name+"/contour:i");
 
-        ret = ret && portPointsOut.open("/visionAndReach/pnt:o");
+        ret = ret && portPointsOut.open("/"+name+"/pnt:o");
         ret = ret && portDispOut.open("/"+name+"/disp:o");
 
         ret = ret && portSFM.open("/"+name+"/SFM:rpc");
@@ -236,6 +236,11 @@ public:
 
                             points.push_back(point);
                             floodPoints.push_back(cv::Point(x,y));
+                            
+                            Bottle &bpoint = bpoints.addList();
+                            bpoint.addDouble(point[0]);
+                            bpoint.addDouble(point[1]);
+                            bpoint.addDouble(point[2]);
                         }
                     }
 
@@ -320,33 +325,37 @@ public:
                     if (fileFormat == "ply")
                     {
                         fileNameFormat = fileName.str()+".ply";
+                        cout << "Saving as " << fileNameFormat << endl;
                         fout.open(fileNameFormat.c_str());
-                        fout << "ply\n";
-                        fout << "format ascii 1.0\n";
-                        fout << "element vertex " << points.size() <<"\n";
-                        fout << "property float x\n";
-                        fout << "property float y\n";
-                        fout << "property float z\n";
-                        fout << "property uchar diffuse_red\n";
-                        fout << "property uchar diffuse_green\n";
-                        fout << "property uchar diffuse_blue\n";
-                        fout << "end_header\n";
-
-                        for (unsigned int i=0; i<points.size(); i++){
-                            fout << points[i][0] << " " <<      points[i][1] << " " <<      points[i][2] << " " << (int)points[i][3] << " " << (int)points[i][4] << " " << (int)points[i][5] << "\n";
-                            //plyfile << cloud->at(i).x << " " << cloud->at(i).y << " " << cloud->at(i).z << " " << (int)cloud->at(i).r << " " << (int)cloud->at(i).g << " " << (int)cloud->at(i).b << "\n";
-                        }
-
-                        fout.close();
-                        cout << "Points saved as " << fileNameFormat << endl;
-                        fileCount++;
-
-                    }else if (fileFormat == "off"){
-
                         if (fout.is_open())
                         {
-                            fileNameFormat = fileName.str()+".off";
-                            fout.open(fileNameFormat.c_str());
+                            fout << "ply\n";
+                            fout << "format ascii 1.0\n";
+                            fout << "element vertex " << points.size() <<"\n";
+                            fout << "property float x\n";
+                            fout << "property float y\n";
+                            fout << "property float z\n";
+                            fout << "property uchar diffuse_red\n";
+                            fout << "property uchar diffuse_green\n";
+                            fout << "property uchar diffuse_blue\n";
+                            fout << "end_header\n";
+
+                            for (unsigned int i=0; i<points.size(); i++){
+                                fout << points[i][0] << " " <<      points[i][1] << " " <<      points[i][2] << " " << (int)points[i][3] << " " << (int)points[i][4] << " " << (int)points[i][5] << "\n";
+                                //plyfile << cloud->at(i).x << " " << cloud->at(i).y << " " << cloud->at(i).z << " " << (int)cloud->at(i).r << " " << (int)cloud->at(i).g << " " << (int)cloud->at(i).b << "\n";
+                            }
+
+                            fout.close();
+                            cout << "Points saved as " << fileNameFormat << endl;
+                            fileCount++;
+                        }
+                    }else if (fileFormat == "off"){
+                        fileNameFormat = fileName.str()+".off";
+                        cout << "Saving as " << fileNameFormat << endl;
+                        fout.open(fileNameFormat.c_str());
+                        if (fout.is_open())
+                        {
+
                             fout<<"COFF"<<endl;
                             fout<<points.size()<<" 0 0"<<endl;
                             fout<<endl;
@@ -405,9 +414,10 @@ public:
                         point[1]=reply.get(idx+1).asDouble();
                         point[2]=reply.get(idx+2).asDouble();
 
-                        bpoints.addDouble(point[0]);
-                        bpoints.addDouble(point[1]);
-                        bpoints.addDouble(point[2]);
+                        Bottle &bpoint = bpoints.addList();
+                        bpoint.addDouble(point[0]);
+                        bpoint.addDouble(point[1]);
+                        bpoint.addDouble(point[2]);
 
                         if (norm(point)>0.0)
                         {
@@ -505,12 +515,13 @@ public:
             if (command.size()>=2){
                 string format = command.get(1).asString();
                 if ((format=="ply")||(format=="off")||(format=="none")){
-                    fileFormat == format;
+                    fileFormat = format;
                     reply.addVocab(ack);
-                    reply.addString("Format set to " + format.c_str());
+                    reply.addString("Format set correctly");
                 } else {
                     reply.addVocab(nack);
                     reply.addString("No valid format chosen. Choose ply/off/none");
+                }
             }
         }
         else if (cmd=="setFileName")
@@ -518,7 +529,7 @@ public:
             if (command.size()>=2){
                 savename = command.get(1).asString();
                 reply.addVocab(ack);
-                reply.addString("File Name set to " + savename.c_str());
+                reply.addString("File Name set correctly");
             }
         }
         else 
