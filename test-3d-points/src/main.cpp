@@ -255,12 +255,12 @@ public:
                     cv::Scalar delta(color_distance);
 
                     // flood region and display
-                    cv::floodFill(imgDispInMat,seed,cv::Scalar(255),NULL,delta,delta,4|cv::FLOODFILL_FIXED_RANGE);
-                    cv::cvtColor(imgDispInMat,imgDispOutMat,CV_GRAY2RGB);
+                    //cv::floodFill(imgDispInMat,seed,cv::Scalar(255),NULL,delta,delta,4|cv::FLOODFILL_FIXED_RANGE);
+                    //cv::cvtColor(imgDispInMat,imgDispOutMat,CV_GRAY2RGB);
 
                     // flood region and copy flood onto mask
                     cv::Mat mask = cv::Mat::zeros(imgDispInMat.rows + 2, imgDispInMat.cols + 2, CV_8U);
-                    cv::floodFill(imgDispInMat, mask,seed, cv::Scalar(255), NULL, cv::Scalar(), cv::Scalar(),  4 + (255 << 8) + cv::FLOODFILL_MASK_ONLY);
+                    cv::floodFill(imgDispInMat, mask,seed, cv::Scalar(255), NULL, delta, delta,  4 + (255 << 8) | cv::FLOODFILL_FIXED_RANGE| cv::FLOODFILL_MASK_ONLY);
 
                     // Get the contours of the color flooded region from mask.
                     vector<vector<cv::Point> > contoursFlood;
@@ -295,7 +295,7 @@ public:
                             int x = point->get(0).asDouble();
                             int y = point->get(1).asDouble();
                             binImg.at<uchar>(y,x) = 255;
-                            floodPoints.push_back(cv::Point(x,y));
+                            //floodPoints.push_back(cv::Point(x,y));
                         }
 
                         // Get the contours of the segmented region.
@@ -312,6 +312,7 @@ public:
                     }
                 }
 
+                //--------------------------------------------------------------------------------------------------------------------------//
                 // Save points in the desired format
                 if (points.size()>0)
                 {
@@ -407,7 +408,9 @@ public:
                 for (int y=boundBox.y; y<boundBox.y+boundBox.height; y+=downsampling)
                 {
                     if (cv::pointPolygonTest(contourIn,cv::Point2f((float)x,(float)y),false)>0.0)
-                    {
+                    {                        
+                        floodPoints.push_back(cv::Point(x,y));
+
                         Vector point(6,0.0);
                         point[0]=reply.get(idx+0).asDouble();
                         point[1]=reply.get(idx+1).asDouble();
