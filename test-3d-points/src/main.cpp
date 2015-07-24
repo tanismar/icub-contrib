@@ -437,7 +437,7 @@ public:
             LockGuard lg(mutex);
             contour.clear();
             floodPoints.clear();
-            rect = cv::Rect(1,1,0,0);
+            rect = cv::Rect(1,1,0,0);            
             go=flood3d=flood=seg=false;
             reply.addVocab(ack);
         }
@@ -451,6 +451,8 @@ public:
             reply.addString("flood int(color_distance) - gets pointcloud from 2D color flood. User has to select the seed pixel from the disp image");
             reply.addString("flood3D double(spatial_distance)- gets pointcloud from 3D color flood (based on depth). User has to select the seed pixel from the disp image");
             reply.addString("seg - gets pointcloud from an externally segmented blob. User has to select the seed pixel from the disp image");
+            reply.addString("setFormat string(fileformat)- sets the format in which the points will be saved. 'fileformat' can be  'ply', 'off' or 'none'.");
+            reply.addString("setFileName string(filename)- sets the base name given to the files where the 3D points will be saved. ");
             return true;
         }
         else if ((cmd=="go") || (cmd=="flood3d")|| (cmd=="flood")|| (cmd=="seg"))
@@ -498,10 +500,27 @@ public:
                 }
             }
         }
-        // XXX write methods to change the name of the file or the format to write on.
-        //else if ()
-        //{}
-
+        else if (cmd=="setFormat")
+        {
+            if (command.size()>=2){
+                string format = command.get(1).asString();
+                if ((format=="ply")||(format=="off")||(format=="none")){
+                    fileFormat == format;
+                    reply.addVocab(ack);
+                    reply.addString("Format set to " + format.c_str());
+                } else {
+                    reply.addVocab(nack);
+                    reply.addString("No valid format chosen. Choose ply/off/none");
+            }
+        }
+        else if (cmd=="setFileName")
+        {
+            if (command.size()>=2){
+                savename = command.get(1).asString();
+                reply.addVocab(ack);
+                reply.addString("File Name set to " + savename.c_str());
+            }
+        }
         else 
             RFModule::respond(command,reply);
         
