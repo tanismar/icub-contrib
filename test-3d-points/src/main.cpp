@@ -197,8 +197,7 @@ public:
 
             if (go||flood3d||flood||seg)
             {
-                Bottle &points3Dbot=portPointsOut.prepare();
-                Bottle &bpoints=points3Dbot.addList();
+                Bottle &bpoints=portPointsOut.prepare();
 
                 vector<Vector> points;                
 
